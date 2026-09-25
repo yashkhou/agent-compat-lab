@@ -1,0 +1,14 @@
+{
+  "name": "agent-compat-lab",
+  "version": "0.1.0",
+  "description": "Cross-agent compatibility linter for repository instructions, skills and MCP configuration.",
+  "type": "module",
+  "bin": { "agent-compat": "./src/cli.js" },
+  "scripts": {
+    "test": "node --test",
+    "check": "node src/cli.js . --json"
+  },
+  "engines": { "node": ">=20" },
+  "keywords": ["ai-agents","coding-agents","mcp","agents-md","claude-code","codex","opencode","gemini-cli"],
+  "license": "MIT"
+}
