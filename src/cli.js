@@ -3,9 +3,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { analyzeRepository } from './analyze.js';
 import { toSarif } from './sarif.js';
+import { buildCapabilityManifest } from './manifest.js';
 
 function usage() {
-  return `Agent Compat Lab\n\nUsage:\n  agent-compat [repo] [--json]\n  agent-compat [repo] --sarif [file]\n  agent-compat [repo] --format text|json|sarif [--output file]\n\nOptions:\n  --json               Alias for --format json\n  --sarif [file]       Emit SARIF; optional file path\n  --format <format>    text, json, or sarif\n  --output <file>      Write report to a file\n  --fail-on <level>    error (default) or warning\n  --help               Show this help\n`;
+  return `Agent Compat Lab\n\nUsage:\n  agent-compat [repo] [--json]\n  agent-compat [repo] --sarif [file]\n  agent-compat [repo] --format text|json|sarif|manifest [--output file]
+  agent-compat [repo] --manifest [file]\n\nOptions:\n  --json               Alias for --format json\n  --sarif [file]       Emit SARIF; optional file path\n  --manifest [file]    Emit machine-readable agent capability manifest
+  --format <format>    text, json, sarif, or manifest\n  --output <file>      Write report to a file\n  --fail-on <level>    error (default) or warning\n  --help               Show this help\n`;
 }
 
 function parseArgs(argv) {
@@ -21,6 +24,12 @@ function parseArgs(argv) {
     if (arg === '--help' || arg === '-h') return { ...options, help: true };
     if (arg === '--json') {
       options.format = 'json';
+      continue;
+    }
+    if (arg === '--manifest') {
+      options.format = 'manifest';
+      const next = argv[i + 1];
+      if (next && !next.startsWith('--')) { options.output = next; i += 1; }
       continue;
     }
     if (arg === '--sarif') {
@@ -49,7 +58,7 @@ function parseArgs(argv) {
     options.root = arg;
     rootSet = true;
   }
-  if (!['text', 'json', 'sarif'].includes(options.format)) {
+  if (!['text', 'json', 'sarif', 'manifest'].includes(options.format)) {
     throw new Error(`Unsupported format: ${options.format}`);
   }
   if (!['error', 'warning'].includes(options.failOn)) {
@@ -77,6 +86,7 @@ function renderText(report) {
 function render(report, format) {
   if (format === 'json') return `${JSON.stringify(report, null, 2)}\n`;
   if (format === 'sarif') return `${JSON.stringify(toSarif(report), null, 2)}\n`;
+  if (format === 'manifest') return `${JSON.stringify(buildCapabilityManifest(report), null, 2)}\n`;
   return renderText(report);
 }
 

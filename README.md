@@ -25,6 +25,16 @@ It inspects the repository-facing contract across Codex, Claude Code, Gemini CLI
 | Gemini CLI | `GEMINI.md` | `.gemini/settings.json` |
 | OpenCode | `AGENTS.md` | `opencode.json[c]`, `.opencode/opencode.json[c]` |
 
+## Portable capability manifest
+
+Export what a repository exposes to coding agents as a machine-readable conformance artifact:
+
+```bash
+npx agent-compat-lab . --manifest agent-capabilities.json
+```
+
+The manifest reports detected clients, instruction scopes, skills, MCP/config surfaces, precedence, compatibility score, and pass/warn/fail conformance. Agent runtimes and CI can consume it without re-discovering repository conventions from scratch.
+
 ## Usage
 
 No runtime dependencies are required.

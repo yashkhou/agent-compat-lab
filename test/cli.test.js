@@ -153,3 +153,18 @@ test('validates Codex MCP TOML sections', () => {
   assert.equal(body.detected.codex, true);
   assert.ok(body.findings.some(finding => finding.code === 'CODEX_MCP_TRANSPORT_MISSING'));
 });
+
+
+test('emits a portable agent capability manifest', () => {
+  const dir = makeDir();
+  put(dir, 'AGENTS.md', 'Use npm test.');
+  put(dir, '.mcp.json', JSON.stringify({ mcpServers: { docs: { command: 'node', args: ['server.js'] } } }));
+  const result = run(dir, ['--manifest']);
+  const manifest = JSON.parse(result.stdout);
+  assert.equal(result.status, 0);
+  assert.equal(manifest.schemaVersion, '1.0');
+  assert.equal(manifest.compatibility.clientSupport.codex, true);
+  assert.ok(manifest.capabilities.instructions.includes('AGENTS.md'));
+  assert.ok(manifest.capabilities.mcp.includes('.mcp.json'));
+  assert.equal(manifest.conformance.status, 'pass');
+});
