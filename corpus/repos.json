@@ -1,0 +1,30 @@
+[
+  {
+    "repo": "openai/codex",
+    "url": "https://github.com/openai/codex.git",
+    "sparse": ["/AGENTS.md", "/codex-rs/tui/src/bottom_pane/AGENTS.md"],
+    "expectedFiles": ["AGENTS.md", "codex-rs/tui/src/bottom_pane/AGENTS.md"],
+    "expectedClients": ["codex"]
+  },
+  {
+    "repo": "google-gemini/gemini-cli",
+    "url": "https://github.com/google-gemini/gemini-cli.git",
+    "sparse": ["/GEMINI.md", "/packages/core/GEMINI.md"],
+    "expectedFiles": ["GEMINI.md", "packages/core/GEMINI.md"],
+    "expectedClients": ["gemini"]
+  },
+  {
+    "repo": "anomalyco/opencode",
+    "url": "https://github.com/anomalyco/opencode.git",
+    "sparse": ["/AGENTS.md", "/.opencode/opencode.jsonc", "/packages/opencode/AGENTS.md"],
+    "expectedFiles": ["AGENTS.md", ".opencode/opencode.jsonc", "packages/opencode/AGENTS.md"],
+    "expectedClients": ["opencode"]
+  },
+  {
+    "repo": "anthropics/claude-code",
+    "url": "https://github.com/anthropics/claude-code.git",
+    "sparse": ["/plugins/plugin-dev/skills/hook-development/SKILL.md"],
+    "expectedFiles": ["plugins/plugin-dev/skills/hook-development/SKILL.md"],
+    "expectedClients": []
+  }
+]

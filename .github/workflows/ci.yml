@@ -2,6 +2,10 @@ name: ci
 on:
   push:
   pull_request:
+
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -11,3 +15,11 @@ jobs:
         with:
           node-version: 22
       - run: npm test
+      - run: npm run check
+      - run: npm run sarif
+      - name: Validate SARIF
+        run: node -e "const s=JSON.parse(require('fs').readFileSync('agent-compat.sarif','utf8')); if(s.version!=='2.1.0') process.exit(1)"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: agent-compat-sarif
+          path: agent-compat.sarif
