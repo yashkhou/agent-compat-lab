@@ -13,7 +13,8 @@ import {
   validateInstructions,
   validateSkills,
   validateStandaloneMcp,
-  validateClientConfigs
+  validateClientConfigs,
+  validateAgentPlugin
 } from './validators.js';
 
 const WEIGHTS = { error: 20, warning: 8, info: 2 };
@@ -51,6 +52,8 @@ export function analyzeRepository(root, options = {}) {
   validateSkills(skillFiles, addFinding);
   validateStandaloneMcp(resolvedRoot, mcpFiles, addFinding);
   validateClientConfigs(resolvedRoot, configFiles, addFinding);
+  const pluginFiles = scan.files.filter(file => path.posix.basename(file) === 'plugin.json');
+  validateAgentPlugin(resolvedRoot, pluginFiles, fileSet, addFinding);
   const precedence = buildPrecedenceModel(instructionFiles, addFinding);
 
   const detected = {};
@@ -69,7 +72,8 @@ export function analyzeRepository(root, options = {}) {
     ...instructionFiles.map(file => file.path),
     ...skillFiles.map(file => file.path),
     ...mcpFiles,
-    ...configFiles
+    ...configFiles,
+    ...pluginFiles
   ])].sort();
 
   return {
@@ -86,6 +90,7 @@ export function analyzeRepository(root, options = {}) {
       skillFiles: skillFiles.map(file => file.path),
       mcpFiles,
       configFiles,
+      pluginFiles,
       relevantFiles
     },
     precedence,

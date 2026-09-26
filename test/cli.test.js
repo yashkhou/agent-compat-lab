@@ -168,3 +168,28 @@ test('emits a portable agent capability manifest', () => {
   assert.ok(manifest.capabilities.mcp.includes('.mcp.json'));
   assert.equal(manifest.conformance.status, 'pass');
 });
+
+
+
+test('validates Agent Plugins 1.0 portable layout', () => {
+  const dir = makeDir();
+  put(dir, 'AGENTS.md', '# Instructions');
+  put(dir, 'plugin.json', JSON.stringify({ $schema: 'https://agent-plugins.org/schemas/1.0.0/plugin.schema.json', name: 'portable-tools', version: '1.0.0', description: 'tools' }));
+  put(dir, 'mcp.json', JSON.stringify({ $schema: 'https://agent-plugins.org/schemas/1.0.0/mcp.schema.json', servers: {} }));
+  put(dir, 'skills/deploy/SKILL.md', '---\nname: deploy\ndescription: Deploy safely\n---\nDo the thing.');
+  const body = JSON.parse(run(dir).stdout);
+  assert.deepEqual(body.inventory.pluginFiles, ['plugin.json']);
+  assert.equal(body.findings.some(f => f.code.startsWith('AGENT_PLUGIN_')), false);
+});
+
+test('flags nonportable Agent Plugins 1.0 manifest fields and MCP schema drift', () => {
+  const dir = makeDir();
+  put(dir, 'AGENTS.md', '# Instructions');
+  put(dir, 'plugin.json', JSON.stringify({ $schema: 'https://agent-plugins.org/schemas/1.0.0/plugin.schema.json', name: 'Bad_Name', skills: ['custom-skills/'] }));
+  put(dir, 'mcp.json', JSON.stringify({ servers: {} }));
+  const body = JSON.parse(run(dir).stdout);
+  const codes = new Set(body.findings.map(f => f.code));
+  assert.ok(codes.has('AGENT_PLUGIN_NAME_INVALID'));
+  assert.ok(codes.has('AGENT_PLUGIN_NONPORTABLE_MANIFEST_FIELD'));
+  assert.ok(codes.has('AGENT_PLUGIN_MCP_SCHEMA_INVALID'));
+});

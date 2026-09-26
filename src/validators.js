@@ -214,3 +214,36 @@ export function validateClientConfigs(root, configFiles, addFinding) {
     if (client === 'opencode') validateOpenCodeMcp(parsed, file, addFinding);
   }
 }
+
+
+const AGENT_PLUGIN_SCHEMA = 'https://agent-plugins.org/schemas/1.0.0/plugin.schema.json';
+const AGENT_PLUGIN_MCP_SCHEMA = 'https://agent-plugins.org/schemas/1.0.0/mcp.schema.json';
+const AGENT_PLUGIN_NAME = /^(?=.{1,64}$)[a-z0-9](?!.*(?:--|\\.\\.))[a-z0-9.-]*[a-z0-9]$|^[a-z0-9]$/;
+
+export function validateAgentPlugin(root, pluginFiles, fileSet, addFinding) {
+  for (const file of pluginFiles) {
+    const parsed = parseConfig(readText(root, file), file, addFinding, 'agent-plugin', false);
+    if (!parsed || parsed.$schema !== AGENT_PLUGIN_SCHEMA) continue;
+    const dir = file.includes('/') ? file.slice(0, file.lastIndexOf('/')) : '';
+    const rel = name => dir ? `${dir}/${name}` : name;
+    if (typeof parsed.name !== 'string' || !AGENT_PLUGIN_NAME.test(parsed.name)) {
+      addFinding('error', 'AGENT_PLUGIN_NAME_INVALID', `${file} Agent Plugins 1.0 name must be 1-64 lowercase ASCII letters, digits, dots or hyphens, start/end alphanumeric, and contain no -- or ...`, [file], 'agent-plugin');
+    }
+    for (const key of ['skills', 'mcpServers', 'agents', 'hooks', 'commands', 'rules', 'lsp']) {
+      if (key in parsed) addFinding('warning', 'AGENT_PLUGIN_NONPORTABLE_MANIFEST_FIELD', `${file} uses ${key}; Agent Plugins 1.0 discovers portable skills from skills/ and MCP from root mcp.json. Client-specific components belong under extensions/namespaced directories.`, [file], 'agent-plugin');
+    }
+    const mcp = rel('mcp.json');
+    if (fileSet.has(mcp)) {
+      const mcpConfig = parseConfig(readText(root, mcp), mcp, addFinding, 'agent-plugin', false);
+      if (mcpConfig && mcpConfig.$schema !== AGENT_PLUGIN_MCP_SCHEMA) {
+        addFinding('error', 'AGENT_PLUGIN_MCP_SCHEMA_INVALID', `${mcp} must declare the Agent Plugins 1.0 MCP schema.`, [mcp], 'agent-plugin');
+      }
+    }
+    const skillPrefix = rel('skills/')
+    const nestedSkillFiles = [...fileSet].filter(path => path.startsWith(skillPrefix) && path.endsWith('/SKILL.md'));
+    for (const skill of nestedSkillFiles) {
+      const rest = skill.slice(skillPrefix.length);
+      if (rest.split('/').length !== 2) addFinding('warning', 'AGENT_PLUGIN_SKILL_NOT_IMMEDIATE', `${skill} is not in an immediate skills/<name>/SKILL.md directory and may not be discovered portably.`, [skill], 'agent-plugin');
+    }
+  }
+}
