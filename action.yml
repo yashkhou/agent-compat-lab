@@ -1,0 +1,34 @@
+name: Agent Compat Lab
+description: Scan repository agent instructions, skills and MCP configuration for cross-agent compatibility drift.
+author: yashkhou
+branding:
+  icon: check-circle
+  color: blue
+inputs:
+  format:
+    description: Output format (text, json, sarif, manifest)
+    required: false
+    default: text
+  fail-on:
+    description: Minimum severity that fails the step (error or warning)
+    required: false
+    default: error
+  output:
+    description: Optional repository-relative output file
+    required: false
+    default: ''
+runs:
+  using: composite
+  steps:
+    - name: Run compatibility scan
+      shell: bash
+      env:
+        INPUT_FORMAT: ${{ inputs.format }}
+        INPUT_FAIL_ON: ${{ inputs.fail-on }}
+        INPUT_OUTPUT: ${{ inputs.output }}
+      run: |
+        args=("$GITHUB_WORKSPACE" --format "$INPUT_FORMAT" --fail-on "$INPUT_FAIL_ON")
+        if [[ -n "$INPUT_OUTPUT" ]]; then
+          args+=(--output "$GITHUB_WORKSPACE/$INPUT_OUTPUT")
+        fi
+        node "$GITHUB_ACTION_PATH/src/cli.js" "${args[@]}"

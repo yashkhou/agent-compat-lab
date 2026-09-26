@@ -90,3 +90,17 @@ npm run sarif
 ```
 
 Node.js 20+ is required. The project is MIT licensed.
+
+## GitHub Action
+
+Run Agent Compat Lab directly in a workflow after `actions/checkout`:
+
+```yaml
+- uses: yashkhou/agent-compat-lab@main
+  with:
+    format: sarif
+    output: agent-compat.sarif
+    fail-on: error
+```
+
+The composite action scans `$GITHUB_WORKSPACE` and supports the same `text`, `json`, `sarif`, and `manifest` outputs as the CLI.
